@@ -55,3 +55,17 @@ def memoize(func):
             self.__memoize_cache[func][key] = func(self, *args, **kwargs)
         return self.__memoize_cache[func][key]
     return _
+
+def abbreviate_ref_name(name, limit=None, part_min_len=1, ellipsis=u'...'):
+    if limit is None: return name
+    name, limit = unicode(name), int(limit)
+    parts = name.split(u'/')
+    i, current_len = 0, len('/'.join(parts))
+    while i < len(parts) and current_len > limit:
+        # Can it possibly be made shorter?
+        if len(parts[i]) > part_min_len + len(ellipsis):
+            over = current_len + len(ellipsis) - limit
+            parts[i] = parts[i][:max(part_min_len, len(parts[i]) - over)] + ellipsis
+        i, current_len = i + 1, len('/'.join(parts))
+    return '/'.join(parts)
+

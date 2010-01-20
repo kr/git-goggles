@@ -3,7 +3,7 @@ import sys
 
 from gitgoggles.asciitable import AsciiTable, AsciiCell
 from gitgoggles.git import Repository, TrackingBranch, LocalBranch, PublishedBranch, TrackedBranch
-from gitgoggles.utils import colored
+from gitgoggles.utils import colored, abbreviate_ref_name
 
 TAG_PREFIX = 'codereview--'
 
@@ -81,7 +81,7 @@ def get_status():
 
         table.add_row([
             AsciiCell(status.upper(), color),
-            AsciiCell(ref.name),
+            AsciiCell(abbreviate_ref_name(ref.name, limit=20)),
             AsciiCell(review_text, review_color, reverse=review),
             AsciiCell(ahead_text, ahead_color, reverse=ahead),
             AsciiCell(behind_text, behind_color, reverse=behind),
