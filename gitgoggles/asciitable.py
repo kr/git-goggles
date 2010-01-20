@@ -1,12 +1,15 @@
-from gitgoggles.utils import force_unicode, force_str, console, colored
+from gitgoggles.utils import force_unicode, force_str, console, colored, abbreviate, terminal_width
 
 class AsciiCell(object):
-    def __init__(self, value, color=None, background=None, reverse=False):
+    def __init__(self, value, color=None, background=None, reverse=False,
+                 abbreviate=abbreviate, abbreviate_min_width=0):
         self.value = force_unicode(value)
         self.color = color
         self.background = background
         self.attrs = reverse and ['reverse'] or []
         self.width = len(self.value)
+        self.abbreviate = abbreviate
+        self.abbreviate_min_width = abbreviate_min_width
 
 class AsciiTable(object):
     def __init__(self, headers):
@@ -14,6 +17,7 @@ class AsciiTable(object):
         self.data = []
         self._widths = [ x.width for x in self.headers ]
         self.spacing = 1
+        self.width_limit = terminal_width()
 
     def add_row(self, data):
         if len(data) != len(self.headers):
@@ -48,7 +52,8 @@ class AsciiTable(object):
         for column, cell, width in zip(self.headers, row, self._widths):
             if not first_column: console(u' ' * self.spacing)
             first_column = False
-            console(colored(cell.value.ljust(width), cell.color, cell.background, attrs=cell.attrs))
+            padded_value = column.abbreviate(cell.value.ljust(width), limit=width)
+            console(colored(padded_value, cell.color, cell.background, attrs=cell.attrs))
         console(u'\n')
 
     def render(self):
@@ -64,3 +69,17 @@ class AsciiTable(object):
         for data in self.data:
             for column, cell in enumerate(data):
                 self._widths[column] = max(self._widths[column], cell.width)
+
+        # Now alter the column widths so that rows do not wrap. Proceed from
+        # right to left, shortening each column only as much as possible, but
+        # no more than necessary, stopping when the table is narrow enough to
+        # fit.
+        for i in range(len(self.headers) - 1, -1, -1):
+            row_width = sum(self._widths) + self.spacing * (len(self.headers) - 1)
+            if self.width_limit >= row_width:
+                break
+
+            over = row_width - self.width_limit
+            fit = self._widths[i] - over
+            col_min = min(self._widths[i], self.headers[i].abbreviate_min_width)
+            self._widths[i] = max(fit, col_min)

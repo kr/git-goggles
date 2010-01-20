@@ -1,5 +1,6 @@
 import copy
 import sys
+import os
 import unicodedata
 
 def disable_colored_func(text, *args, **kwargs):
@@ -56,6 +57,12 @@ def memoize(func):
         return self.__memoize_cache[func][key]
     return _
 
+def abbreviate(s, limit=None, ellipsis=u'...'):
+    if limit is None: return s
+    if limit >= len(s): return s
+    top = limit - len(ellipsis)
+    return s[:top] + ellipsis
+
 def abbreviate_ref_name(name, limit=None, part_min_len=1, ellipsis=u'...'):
     if limit is None: return name
     name, limit = unicode(name), int(limit)
@@ -69,3 +76,8 @@ def abbreviate_ref_name(name, limit=None, part_min_len=1, ellipsis=u'...'):
         i, current_len = i + 1, len('/'.join(parts))
     return '/'.join(parts)
 
+def terminal_width():
+    # This probably does not work on windows, but it should work just about
+    # everywhere else.
+    rows, columns = os.popen('stty size', 'r').read().split()
+    return int(columns)

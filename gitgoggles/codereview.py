@@ -16,7 +16,16 @@ def get_status():
     refs = repo.branches(LocalBranch, TrackingBranch, PublishedBranch)
     tags = repo.tags()
 
-    table = AsciiTable([u'Status', u'Branch', u'Review', u'Ahead', u'Behind', u'Pull', u'Push', u'Modified'])
+    table = AsciiTable([
+        AsciiCell(value=u'Status', abbreviate_min_width=4),
+        AsciiCell(value=u'Branch', abbreviate=abbreviate_ref_name),
+        AsciiCell(value=u'Review', abbreviate_min_width=9),
+        AsciiCell(value=u'Ahead', abbreviate_min_width=10),
+        AsciiCell(value=u'Behind', abbreviate_min_width=10),
+        AsciiCell(value=u'Pull', abbreviate_min_width=4),
+        AsciiCell(value=u'Push', abbreviate_min_width=4),
+        AsciiCell(value=u'Modified', abbreviate_min_width=9),
+    ])
 
     if repo.configs.get('gitgoggles.colors', 'True') == 'False':
         colored.disabled = True
@@ -81,7 +90,7 @@ def get_status():
 
         table.add_row([
             AsciiCell(status.upper(), color),
-            AsciiCell(abbreviate_ref_name(ref.name, limit=20)),
+            AsciiCell(ref.name),
             AsciiCell(review_text, review_color, reverse=review),
             AsciiCell(ahead_text, ahead_color, reverse=ahead),
             AsciiCell(behind_text, behind_color, reverse=behind),
