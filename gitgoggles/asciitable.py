@@ -13,8 +13,7 @@ class AsciiTable(object):
         self.headers = [ isinstance(x, AsciiCell) and x or AsciiCell(x) for x in headers ]
         self.data = []
         self._widths = [ x.width for x in self.headers ]
-        self.left_padding = 1
-        self.right_padding = 1
+        self.spacing = 1
 
     def add_row(self, data):
         if len(data) != len(self.headers):
@@ -29,10 +28,11 @@ class AsciiTable(object):
 
     def _print_horizontal_rule(self):
         bits = []
-        console(u'+')
+        first_column = True
         for column, width in zip(self.headers, self._widths):
-            console(u'-' * (self.right_padding + self.left_padding + width))
-            console(u'+')
+            if not first_column: console(u'-' * self.spacing)
+            first_column = False
+            console(u'-' * width)
         console(u'\n')
 
     def _print_headers(self):
@@ -44,10 +44,11 @@ class AsciiTable(object):
 
     def _print_row(self, row):
         bits = []
-        console(u'|')
+        first_column = True
         for column, cell, width in zip(self.headers, row, self._widths):
-            console(colored(u' ' * self.left_padding + cell.value.ljust(width) + u' ' * self.right_padding, cell.color, cell.background, attrs=cell.attrs))
-            console(u'|')
+            if not first_column: console(u' ' * self.spacing)
+            first_column = False
+            console(colored(cell.value.ljust(width), cell.color, cell.background, attrs=cell.attrs))
         console(u'\n')
 
     def render(self):
